@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Anime Schedule · Winter 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #080810;
+      --surface:    #111118;
+      --surface2:   #18181f;
+      --surface3:   #1e1e28;
+      --border:     #25252f;
+      --border2:    #38384a;
+      --text:       #f4f4f8;
+      --muted:      #9898b0;
+      --muted2:     #5c5c74;
+      --danger:     #f97373;
+      --today-bg:   #14141e;
+      --green:      #4ade80;
+      --green-bg:   #0e2218;
+      --green-bdr:  rgba(74,222,128,.55);
+      --yellow:     #facc15;
+      --red:        #fb7185;
+      --blue:       #60a5fa;
+      --gray:       #9ca3af;
+      --mono:       ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      min-height: 100dvh;
+    }
+
+    /* ══════════════════ TOPBAR ══════════════════ */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8,8,16,.96);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-left { display: flex; flex-direction: column; gap: 3px; }
+    .season-eyebrow {
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted2);
+    }
+    .season-row { display: flex; align-items: center; gap: 10px; }
+    .season-nav { display: flex; gap: 5px; }
+    .snav-btn {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .1s, color .1s;
+    }
+    .snav-btn:hover { border-color: var(--muted); color: var(--text); }
+    .snav-btn:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+    .season-title { font-size: 22px; font-weight: 600; letter-spacing: -.03em; }
+
+    .topbar-right { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+
+    button, input, select { font: inherit; color: inherit; }
+
+    .search-wrap { position: relative; display: flex; align-items: center; }
+    .search-icon { position: absolute; left: 11px; font-size: 14px; color: var(--muted2); pointer-events: none; }
+    .search-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 12px 8px 32px;
+      font-size: 13px;
+      color: var(--text);
+      width: 200px;
+      transition: border-color .12s, width .18s;
+    }
+    .search-input::placeholder { color: var(--muted2); }
+    .search-input:focus-visible { outline: none; border-color: var(--muted); width: 240px; }
+
+    .btn {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .12s, color .12s;
+    }
+    .btn:hover { border-color: var(--muted); color: var(--text); }
+    .btn:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+    .btn.ghost { background: transparent; }
+    .btn.destructive:hover { border-color: var(--danger); color: var(--danger); }
+    .btn.reset-week {
+      background: rgba(74,222,128,.07);
+      border-color: rgba(74,222,128,.28);
+      color: var(--green);
+    }
+    .btn.reset-week:hover { background: rgba(74,222,128,.14); border-color: var(--green-bdr); }
+
+    /* ══════════════════ PAGE ══════════════════ */
+    .page { max-width: 1260px; margin: 0 auto; padding: 30px 28px 80px; }
+
+    /* Stats */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      background: var(--border);
+      gap: 1px;
+    }
+    .stat {
+      background: var(--surface);
+      padding: 14px 18px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .stat-val {
+      font-size: 28px; font-weight: 600;
+      font-family: var(--mono);
+      letter-spacing: -.05em; line-height: 1;
+    }
+    .stat-label {
+      font-size: 11px; letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted2);
+    }
+
+    /* ══════════════════ GRID ══════════════════ */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 16px;
+    }
+
+    /* ══════════════════ DAY CARD ══════════════════ */
+    .day {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      min-width: 0;
+    }
+    .day.today {
+      background: var(--today-bg);
+      border-color: var(--border2);
+      border-left: 3px solid #fff;
+    }
+    .day.collapsed .day-body { display: none; }
+    .day.dim { opacity: .3; pointer-events: none; }
+
+    .day-header {
+      padding: 16px 18px 14px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer; user-select: none;
+    }
+    .day-name-row {
+      display: flex; align-items: center;
+      gap: 8px; flex-wrap: wrap;
+    }
+    .day-name {
+      font-size: 13px; font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .day.today .day-name { color: var(--text); }
+    .today-badge {
+      font-size: 9px; font-weight: 600;
+      letter-spacing: .16em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.07);
+      color: #fff;
+    }
+    .count-badge {
+      font-size: 10px; color: var(--muted2);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .chevron {
+      font-size: 13px; color: var(--muted2);
+      transition: transform .18s;
+      flex-shrink: 0;
+    }
+    .day.collapsed .chevron { transform: rotate(-90deg); }
+
+    .day-body {
+      padding: 0 14px 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .divider { height: 1px; background: var(--border); margin: 0 2px; }
+
+    /* Add row */
+    .add-row { display: flex; gap: 8px; }
+    .add-input {
+      flex: 1; min-width: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 12px;
+      font-size: 14px; color: var(--text);
+    }
+    .add-input::placeholder { color: var(--muted2); }
+    .add-input:focus-visible { outline: none; border-color: var(--muted); }
+    .add-btn {
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      padding: 9px 16px;
+      font-size: 14px; color: var(--muted);
+      cursor: pointer; white-space: nowrap;
+      transition: border-color .12s, color .12s;
+    }
+    .add-btn:hover { border-color: var(--muted); color: var(--text); }
+    .add-btn:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+
+    /* ══════════════════ ITEM ROW ══════════════════ */
+    .items { display: flex; flex-direction: column; gap: 6px; }
+
+    .item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 12px 14px 10px;
+      display: flex; flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+      transition: background .12s, border-color .12s;
+    }
+    .item:hover { background: var(--surface3); border-color: var(--border2); }
+    .item.completed { opacity: .52; }
+    .item.completed .item-title { text-decoration: line-through; color: var(--muted); }
+    .item.watched {
+      background: var(--green-bg);
+      border-color: var(--green-bdr);
+    }
+    .item.watched:hover { background: #0f2a1a; }
+    .item.search-dim { opacity: .18; pointer-events: none; }
+
+    /* Row A: checkbox · title · order btns */
+    .item-row-a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .check-btn {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border2);
+      background: rgba(255,255,255,.03);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: transparent;
+      transition: border-color .12s, background .12s, color .12s;
+    }
+    .check-btn:hover { border-color: var(--green); }
+    .item.completed .check-btn {
+      background: rgba(74,222,128,.16);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .item-title {
+      flex: 1;
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      line-height: 1.4;
+      transition: color .1s;
+    }
+    .item-title:hover {
+      color: #fff;
+      text-decoration: underline;
+      text-decoration-color: var(--muted2);
+    }
+
+    .order-btns { display: flex; gap: 3px; flex-shrink: 0; }
+    .order-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted2);
+      border-radius: 6px;
+      width: 26px; height: 26px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .1s, color .1s;
+    }
+    .order-btn:hover { border-color: var(--muted); color: var(--text); }
+
+    /* Row B: status · eps · actions */
+    .item-row-b {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .status-select {
+      flex: 1 1 120px;
+      min-width: 110px; max-width: 180px;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .status-select:focus-visible { outline: none; border-color: var(--muted); }
+    .status-select.watching  { color: var(--blue);   border-color: rgba(96,165,250,.5); }
+    .status-select.onhold    { color: var(--yellow); border-color: rgba(250,204,21,.5); }
+    .status-select.dropped   { color: var(--red);    border-color: rgba(251,113,133,.5); }
+    .status-select.completed { color: var(--green);  border-color: rgba(74,222,128,.5); }
+    .status-select.plan      { color: var(--gray);   border-color: rgba(156,163,175,.5); }
+
+    .eps-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .eps-label { font-size: 12px; color: var(--muted2); }
+    .eps-input, .eps-total {
+      width: 56px;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 13px;
+      font-family: var(--mono);
+      color: var(--text);
+      text-align: center;
+    }
+    .eps-input:focus-visible, .eps-total:focus-visible { outline: none; border-color: var(--muted); }
+    .eps-sep { font-size: 14px; color: var(--muted2); }
+
+    .item-actions { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
+
+    .watch-btn {
+      border-radius: 8px;
+      border: 1px solid rgba(74,222,128,.4);
+      background: rgba(74,222,128,.07);
+      color: var(--green);
+      padding: 7px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .12s, border-color .12s;
+    }
+    .watch-btn:hover { background: rgba(74,222,128,.16); border-color: var(--green-bdr); }
+    .item.watched .watch-btn {
+      background: var(--green);
+      color: #071a10;
+      border-color: var(--green);
+      font-weight: 600;
+    }
+
+    .del-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted2);
+      padding: 7px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .1s, color .1s;
+    }
+    .del-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    .empty { font-size: 13px; color: var(--muted2); padding: 6px 2px 4px; }
+
+    /* ══════════════════ FOOTER ══════════════════ */
+    .footer {
+      margin-top: 26px;
+      display: flex; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      font-size: 11px; color: var(--muted2);
+    }
+    .save-status { font-family: var(--mono); }
+
+    /* ══════════════════ MODAL ══════════════════ */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.72);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 200;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: #0d0d18;
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 22px 22px 18px;
+      width: min(520px, calc(100vw - 40px));
+      box-shadow: 0 24px 60px rgba(0,0,0,.7);
+    }
+    .modal-head {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 16px;
+    }
+    .modal-heading { font-size: 16px; font-weight: 600; }
+    .modal-x {
+      background: transparent; border: none;
+      color: var(--muted); font-size: 18px;
+      cursor: pointer; padding: 2px 5px;
+    }
+    .modal-x:hover { color: var(--text); }
+    .modal-label { font-size: 12px; color: var(--muted); margin-bottom: 7px; display: block; }
+    .modal-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      padding: 10px 13px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .modal-input:focus-visible { outline: none; border-color: var(--muted); }
+    .modal-foot {
+      margin-top: 16px;
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .modal-cancel {
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      padding: 9px 16px;
+      font-size: 14px; color: var(--muted);
+      cursor: pointer;
+    }
+    .modal-cancel:hover { color: var(--text); border-color: var(--muted); }
+    .modal-save {
+      background: #1a2a3a;
+      border: 1px solid #334155;
+      border-radius: 9px;
+      padding: 9px 18px;
+      font-size: 14px; color: var(--text);
+      cursor: pointer;
+    }
+    .modal-save:hover { background: #1e3448; border-color: #4a6180; }
+
+    @media (max-width: 700px) {
+      .page { padding-inline: 14px; }
+      .topbar { padding-inline: 14px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="season-eyebrow">Seasonal Tracker</div>
+    <div class="season-row">
+      <div class="season-nav">
+        <button class="snav-btn" id="prevSeason">&#8249;</button>
+        <button class="snav-btn" id="nextSeason">&#8250;</button>
+      </div>
+      <div class="season-title" id="seasonTitle">Winter 2026</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn reset-week" id="resetWeekBtn">↺ Reset watched this week</button>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search titles…" />
+    </div>
+    <button class="btn ghost" id="exportBtn">Export</button>
+    <button class="btn ghost" id="importBtn">Import</button>
+    <input id="importFile" type="file" accept="application/json" hidden />
+    <button class="btn ghost destructive" id="clearBtn">Clear all</button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val" id="s-titles">0</div><div class="stat-label">Titles</div></div>
+    <div class="stat"><div class="stat-val" id="s-watching">0</div><div class="stat-label">Watching</div></div>
+    <div class="stat"><div class="stat-val" id="s-completed">0</div><div class="stat-label">Completed</div></div>
+    <div class="stat"><div class="stat-val" id="s-eps">0</div><div class="stat-label">Eps Watched</div></div>
+  </div>
+
+  <main class="grid" id="grid" aria-live="polite"></main>
+
+  <footer class="footer">
+    <span class="save-status" id="saveStatus">Ready.</span>
+    <span>Click a title to edit · comma-separate multiple titles when adding</span>
+  </footer>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-heading">Edit title</div>
+      <button class="modal-x" id="modalX">✕</button>
+    </div>
+    <label class="modal-label" for="modalInput">Full title</label>
+    <input class="modal-input" id="modalInput" type="text" />
+    <div class="modal-foot">
+      <button class="modal-cancel" id="modalCancel">Cancel</button>
+      <button class="modal-save" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  /* ── constants ── */
+  const SEASONS  = ["Winter","Spring","Summer","Fall"];
+  const DAYS     = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const STATUSES = [
+    {v:"",          l:"— Status"},
+    {v:"watching",  l:"Watching"},
+    {v:"plan",      l:"Plan to Watch"},
+    {v:"onhold",    l:"On Hold"},
+    {v:"dropped",   l:"Dropped"},
+    {v:"completed", l:"Completed"},
+  ];
+  const BASE_YEAR = 2025;
+
+  /* ── helpers ── */
+  const uid  = () => typeof crypto?.randomUUID==="function" ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2);
+  const int  = (v,lo,hi) => { const n=parseInt(v,10); return Number.isFinite(n)?Math.min(hi,Math.max(lo,n)):lo; };
+  const skey = s => "anime_v4_"+s.replace(" ","_").toLowerCase();
+
+  const SEASON_LIST = (() => {
+    const o=[];
+    for(let y=BASE_YEAR; y<=BASE_YEAR+3; y++)
+      for(const s of SEASONS) o.push(`${s} ${y}`);
+    return o;
+  })();
+
+  /* ── state ── */
+  const freshDays = () => Object.fromEntries(DAYS.map(d => [d, { items:[], collapsed:false }]));
+  const fresh     = () => ({ v:4, days:freshDays() });
+
+  let seasonIdx = Math.max(0, SEASON_LIST.indexOf("Winter 2026"));
+  let state     = fresh();
+  let saveT     = null;
+  let editRef   = null;
+
+  /* ── dom refs ── */
+  const $grid   = document.getElementById("grid");
+  const $status = document.getElementById("saveStatus");
+  const $stitle = document.getElementById("seasonTitle");
+  const $search = document.getElementById("searchInput");
+  const $modal  = document.getElementById("modalBackdrop");
+  const $minput = document.getElementById("modalInput");
+
+  const setStatus = m => $status.textContent = m;
+
+  /* ── save / load ── */
+  function saveSoon(){
+    clearTimeout(saveT);
+    saveT = setTimeout(()=>{
+      try{
+        localStorage.setItem(skey(SEASON_LIST[seasonIdx]), JSON.stringify(state));
+        setStatus("Saved · "+new Date().toLocaleTimeString());
+      } catch{ setStatus("Save failed."); }
+      updateStats();
+    }, 280);
+  }
+
+  function load(s){
+    try{
+      const raw = localStorage.getItem(skey(s));
+      if(!raw){ state=fresh(); return; }
+      const p = JSON.parse(raw);
+      if(!p?.days){ state=fresh(); return; }
+      const ns = fresh();
+      for(const d of DAYS){
+        const pd = p.days[d];
+        if(!pd) continue;
+        ns.days[d].collapsed = !!pd.collapsed;
+        if(Array.isArray(pd.items)){
+          ns.days[d].items = pd.items.map(it=>({
+            id:          typeof it.id==="string" ? it.id : uid(),
+            title:       typeof it.title==="string" ? it.title : "",
+            status:      typeof it.status==="string" ? it.status : "",
+            epsWatched:  int(it.epsWatched??0,0,99999),
+            epsTotal:    int(it.epsTotal??0,0,99999),
+            completed:   !!it.completed,
+            watchedWeek: !!it.watchedWeek,
+          })).filter(it=>it.title.trim());
+        }
+      }
+      state=ns;
+    } catch(e){ console.error(e); state=fresh(); }
+  }
+
+  /* ── season nav ── */
+  const switchSeason = d => {
+    seasonIdx = Math.max(0, Math.min(SEASON_LIST.length-1, seasonIdx+d));
+    $stitle.textContent = SEASON_LIST[seasonIdx];
+    load(SEASON_LIST[seasonIdx]);
+    render(); updateStats();
+    setStatus("Season: "+SEASON_LIST[seasonIdx]);
+  };
+  document.getElementById("prevSeason").onclick = ()=>switchSeason(-1);
+  document.getElementById("nextSeason").onclick = ()=>switchSeason(1);
+
+  /* ── stats ── */
+  function updateStats(){
+    let t=0, w=0, c=0, e=0;
+    for(const d of DAYS) for(const it of state.days[d].items){
+      t++;
+      if(it.completed||it.status==="completed") c++;
+      else if(it.status==="watching") w++;
+      e += int(it.epsWatched,0,99999);
+    }
+    document.getElementById("s-titles").textContent    = t;
+    document.getElementById("s-watching").textContent  = w;
+    document.getElementById("s-completed").textContent = c;
+    document.getElementById("s-eps").textContent       = e;
+  }
+
+  /* ── search ── */
+  const applySearch = q => {
+    const ql = q.trim().toLowerCase();
+    document.querySelectorAll(".day").forEach(card=>{
+      if(!ql){
+        card.classList.remove("dim");
+        card.querySelectorAll(".item").forEach(r=>r.classList.remove("search-dim"));
+        return;
+      }
+      let any=false;
+      card.querySelectorAll(".item").forEach(row=>{
+        const t=row.querySelector(".item-title");
+        const m=t&&t.textContent.toLowerCase().includes(ql);
+        row.classList.toggle("search-dim",!m);
+        if(m) any=true;
+      });
+      card.classList.toggle("dim",!any);
+    });
+  };
+  $search.addEventListener("input",()=>applySearch($search.value));
+
+  /* ── modal ── */
+  const openModal = (day,id,title) => {
+    editRef = {day,id};
+    $minput.value = title;
+    $modal.classList.add("open");
+    $modal.setAttribute("aria-hidden","false");
+    setTimeout(()=>$minput.focus(), 30);
+  };
+  const closeModal = () => {
+    editRef = null;
+    $modal.classList.remove("open");
+    $modal.setAttribute("aria-hidden","true");
+  };
+  const saveModal = () => {
+    if(!editRef) return;
+    const it = state.days[editRef.day].items.find(x=>x.id===editRef.id);
+    if(it){
+      const val = $minput.value.trim();
+      if(val) it.title = val;
+      else { state.days[editRef.day].items = state.days[editRef.day].items.filter(x=>x.id!==editRef.id); }
+      saveSoon(); render();
+    }
+    closeModal();
+  };
+  document.getElementById("modalX").onclick      = closeModal;
+  document.getElementById("modalCancel").onclick = closeModal;
+  document.getElementById("modalSave").onclick   = saveModal;
+  $modal.addEventListener("click", e=>{ if(e.target===$modal) closeModal(); });
+  $minput.addEventListener("keydown", e=>{
+    if(e.key==="Enter")  { e.preventDefault(); saveModal(); }
+    if(e.key==="Escape") { e.preventDefault(); closeModal(); }
+  });
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape" && $modal.classList.contains("open")) closeModal();
+  });
+
+  /* ── render ── */
+  function render(){
+    $grid.innerHTML = "";
+    const todayName = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+
+    for(const dayName of DAYS){
+      const ds      = state.days[dayName];
+      const isToday = dayName===todayName;
+
+      const card = document.createElement("section");
+      card.className = "day"+(isToday?" today":"")+(ds.collapsed?" collapsed":"");
+      card.dataset.day = dayName;
+
+      /* header */
+      const header = document.createElement("div");
+      header.className = "day-header";
+      header.tabIndex  = 0;
+
+      const nameRow = document.createElement("div");
+      nameRow.className = "day-name-row";
+      const dn = document.createElement("div");
+      dn.className = "day-name";
+      dn.textContent = dayName;
+      nameRow.appendChild(dn);
+
+      if(isToday){
+        const b = document.createElement("span");
+        b.className="today-badge"; b.textContent="Today";
+        nameRow.appendChild(b);
+      }
+      if(ds.items.length>0){
+        const cb = document.createElement("span");
+        cb.className="count-badge";
+        cb.textContent=ds.items.length+(ds.items.length===1?" title":" titles");
+        nameRow.appendChild(cb);
+      }
+
+      const chev = document.createElement("span");
+      chev.className="chevron"; chev.textContent="▾";
+      header.append(nameRow, chev);
+
+      const toggle = () => {
+        state.days[dayName].collapsed = !state.days[dayName].collapsed;
+        card.classList.toggle("collapsed", state.days[dayName].collapsed);
+        saveSoon();
+      };
+      header.addEventListener("click", toggle);
+      header.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();} });
+
+      /* body */
+      const body = document.createElement("div");
+      body.className = "day-body";
+
+      const dvd = document.createElement("div");
+      dvd.className = "divider";
+
+      /* add row */
+      const addRow = document.createElement("div");
+      addRow.className = "add-row";
+      const ai = document.createElement("input");
+      ai.type="text"; ai.className="add-input";
+      ai.placeholder="Add title… or title1, title2";
+      ai.setAttribute("aria-label","Add to "+dayName);
+      const ab = document.createElement("button");
+      ab.type="button"; ab.className="add-btn"; ab.textContent="Add";
+
+      const doAdd = () => {
+        const raw=ai.value.trim(); if(!raw) return;
+        raw.split(",").map(s=>s.trim()).filter(Boolean).forEach(t=>{
+          state.days[dayName].items.push({
+            id:uid(), title:t, status:"",
+            epsWatched:0, epsTotal:0,
+            completed:false, watchedWeek:false
+          });
+        });
+        ai.value=""; saveSoon(); render();
+      };
+      ab.addEventListener("click", doAdd);
+      ai.addEventListener("keydown", e=>{ if(e.key==="Enter"){e.preventDefault();doAdd();} });
+      addRow.append(ai,ab);
+
+      /* items list */
+      const list = document.createElement("div");
+      list.className="items";
+
+      if(ds.items.length===0){
+        const empty=document.createElement("div");
+        empty.className="empty"; empty.textContent="No titles yet.";
+        list.appendChild(empty);
+      } else {
+        for(const it of ds.items){
+          const row = document.createElement("div");
+          row.className = "item"+(it.completed?" completed":"")+(it.watchedWeek?" watched":"");
+          row.dataset.id = it.id;
+
+          /* Row A */
+          const rowA = document.createElement("div");
+          rowA.className = "item-row-a";
+
+          const chk = document.createElement("button");
+          chk.type="button"; chk.className="check-btn";
+          chk.textContent=it.completed?"✓":"";
+          chk.title=it.completed?"Unmark completed":"Mark completed";
+          chk.addEventListener("click",()=>{
+            it.completed=!it.completed;
+            if(it.completed) it.status="completed";
+            else if(it.status==="completed") it.status="watching";
+            saveSoon(); render();
+          });
+
+          const titleEl = document.createElement("div");
+          titleEl.className = "item-title";
+          titleEl.textContent = it.title||"Untitled";
+          titleEl.title = "Click to edit";
+          titleEl.addEventListener("click",()=>openModal(dayName,it.id,it.title));
+
+          const ob = document.createElement("div");
+          ob.className = "order-btns";
+          const mkO = (txt,fn)=>{
+            const b=document.createElement("button");
+            b.type="button"; b.className="order-btn"; b.textContent=txt;
+            b.addEventListener("click",fn);
+            return b;
+          };
+          ob.append(
+            mkO("↑",()=>{
+              const arr=state.days[dayName].items, idx=arr.findIndex(x=>x.id===it.id);
+              if(idx>0){[arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; saveSoon(); render();}
+            }),
+            mkO("↓",()=>{
+              const arr=state.days[dayName].items, idx=arr.findIndex(x=>x.id===it.id);
+              if(idx<arr.length-1){[arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; saveSoon(); render();}
+            })
+          );
+
+          rowA.append(chk, titleEl, ob);
+
+          /* Row B */
+          const rowB = document.createElement("div");
+          rowB.className = "item-row-b";
+
+          const sel = document.createElement("select");
+          sel.className="status-select"+(it.status?" "+it.status:"");
+          sel.setAttribute("aria-label","Status");
+          STATUSES.forEach(s=>{
+            const o=document.createElement("option");
+            o.value=s.v; o.textContent=s.l;
+            if(s.v===it.status) o.selected=true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener("change",()=>{
+            it.status=sel.value;
+            sel.className="status-select"+(it.status?" "+it.status:"");
+            it.completed=it.status==="completed";
+            saveSoon(); render();
+          });
+
+          const ew = document.createElement("div");
+          ew.className="eps-wrap";
+          const elb = document.createElement("span");
+          elb.className="eps-label"; elb.textContent="Ep";
+          const ei = document.createElement("input");
+          ei.type="number"; ei.min="0"; ei.step="1"; ei.className="eps-input";
+          ei.value=String(int(it.epsWatched??0,0,99999));
+          ei.setAttribute("aria-label","Eps watched");
+          ei.addEventListener("input",()=>{ it.epsWatched=int(ei.value,0,99999); saveSoon(); });
+          const sep = document.createElement("span");
+          sep.className="eps-sep"; sep.textContent="/";
+          const et = document.createElement("input");
+          et.type="number"; et.min="0"; et.step="1"; et.className="eps-total";
+          et.value=String(int(it.epsTotal??0,0,99999));
+          et.placeholder="?";
+          et.setAttribute("aria-label","Total eps");
+          et.addEventListener("input",()=>{ it.epsTotal=int(et.value,0,99999); saveSoon(); });
+          ew.append(elb,ei,sep,et);
+
+          const acts = document.createElement("div");
+          acts.className="item-actions";
+
+          const wb = document.createElement("button");
+          wb.type="button"; wb.className="watch-btn";
+          wb.textContent = it.watchedWeek ? "✓ Watched this week" : "Mark this week";
+          wb.addEventListener("click",()=>{ it.watchedWeek=!it.watchedWeek; saveSoon(); render(); });
+
+          const db = document.createElement("button");
+          db.type="button"; db.className="del-btn"; db.textContent="Remove";
+          db.addEventListener("click",()=>{
+            if(!confirm("Remove \""+it.title+"\"?")) return;
+            state.days[dayName].items=state.days[dayName].items.filter(x=>x.id!==it.id);
+            saveSoon(); render();
+          });
+
+          acts.append(wb,db);
+          rowB.append(sel,ew,acts);
+          row.append(rowA,rowB);
+          list.appendChild(row);
+        }
+      }
+
+      body.append(dvd,addRow,list);
+      card.append(header,body);
+      $grid.appendChild(card);
+    }
+
+    updateStats();
+    applySearch($search.value);
+  }
+
+  /* ── reset watched this week ── */
+  document.getElementById("resetWeekBtn").addEventListener("click",()=>{
+    if(!confirm("Reset all 'watched this week' highlights for this season?")) return;
+    for(const d of DAYS) for(const it of state.days[d].items) it.watchedWeek=false;
+    saveSoon(); render();
+  });
+
+  /* ── export (Save File Picker + fallback) ── */
+  document.getElementById("exportBtn").addEventListener("click", async () => {
+    const json     = JSON.stringify(state, null, 2);
+    const filename = `anime-${SEASON_LIST[seasonIdx].replace(" ","-").toLowerCase()}.json`;
+
+    if("showSaveFilePicker" in window){
+      try{
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types:[{ description:"JSON Schedule File", accept:{"application/json":[".json"]} }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        setStatus("Saved → "+handle.name);
+      } catch(err){
+        if(err.name!=="AbortError"){
+          console.error(err);
+          setStatus("Save failed: "+err.message);
+        }
+      }
+      return;
+    }
+
+    /* Fallback: Firefox / Safari */
+    const blob = new Blob([json],{type:"application/json"});
+    const a = Object.assign(document.createElement("a"),{
+      href: URL.createObjectURL(blob),
+      download: filename,
+    });
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+    setStatus("Exported (no Save dialog in this browser).");
+  });
+
+  /* ── import ── */
+  const $ib = document.getElementById("importBtn");
+  const $if = document.getElementById("importFile");
+  $ib.addEventListener("click",()=>$if.click());
+  $if.addEventListener("change",()=>{
+    const f=$if.files?.[0]; $if.value=""; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const p=JSON.parse(String(r.result));
+        if(!p?.days) throw 0;
+        localStorage.setItem(skey(SEASON_LIST[seasonIdx]),JSON.stringify(p));
+        load(SEASON_LIST[seasonIdx]); render();
+        setStatus("Imported.");
+      } catch{
+        setStatus("Import failed.");
+        alert("Invalid JSON file.");
+      }
+    };
+    r.readAsText(f);
+  });
+
+  /* ── clear ── */
+  document.getElementById("clearBtn").addEventListener("click",()=>{
+    if(!confirm("Clear all titles for this season? Cannot be undone.")) return;
+    state=fresh();
+    try{ localStorage.setItem(skey(SEASON_LIST[seasonIdx]),JSON.stringify(state)); } catch{}
+    render(); setStatus("Cleared.");
+  });
+
+  /* ── init ── */
+  load(SEASON_LIST[seasonIdx]);
+  render();
+})();
+</script>
+</body>
+</html>
