@@ -64,7 +64,7 @@
     .quota-banner.visible { display: block; }
 
     .topbar {
-      position: sticky; top: 0; z-index: 100;
+      position: sticky; top: 0; z-index: 100; zoom: 1.2;
       background: color-mix(in srgb, var(--bg) 94%, transparent);
       backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border-bottom: 1px solid var(--border);
@@ -231,7 +231,10 @@
     }
     .add-btn:hover, .batch-btn:hover { border-color: var(--muted); color: var(--text); }
 
-    .items { display: flex; flex-direction: column; gap: 5px; }
+    .items { display: flex; flex-direction: column; gap: 5px; max-height: 520px; overflow-y: auto; }
+    .items::-webkit-scrollbar { width: 5px; }
+    .items::-webkit-scrollbar-track { background: transparent; }
+    .items::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
     .item {
       border: 1px solid var(--border); border-radius: 10px;
@@ -382,6 +385,28 @@
     .progress-fill { height: 100%; background: var(--green); transition: width .3s ease; }
     .item.watched .progress-fill { background: #fff; }
 
+    .label-badge {
+      font-size: 9px; font-weight: 700; letter-spacing: .04em;
+      padding: 2px 8px; border-radius: 4px;
+      text-decoration: none; cursor: pointer; white-space: nowrap;
+      display: inline-flex; align-items: center; flex-shrink: 0;
+      text-transform: uppercase; font-family: var(--mono);
+      transition: filter .15s, box-shadow .15s;
+    }
+    .label-badge:hover { filter: brightness(1.3); box-shadow: 0 0 8px rgba(255,255,255,.1); }
+    .label-select {
+      background: #1a1a28; border: 1px solid var(--border2); border-radius: 6px;
+      padding: 5px 22px 5px 8px; font-size: 11px; font-weight: 500;
+      color: var(--text); cursor: pointer;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239898b0' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 7px center;
+      min-width: 60px;
+    }
+    .label-select > option {
+      background: #111120; color: var(--text); padding: 4px 8px;
+    }
+
     .empty { font-size: 13px; color: var(--muted2); padding: 4px 2px; }
 
     .footer {
@@ -487,6 +512,7 @@
     </div>
     <button class="btn ghost" id="bulkToggle">Select</button>
     <button class="btn ghost" id="exportBtn">Export</button>
+    <button class="btn ghost" id="labelsBtn">Labels</button>
     <button class="btn ghost" id="importBtn">Import</button>
     <input id="importFile" type="file" accept="application/json" hidden />
     <button class="btn ghost destructive" id="clearBtn">Clear all</button>
@@ -539,6 +565,25 @@
     <div class="modal-foot">
       <button class="modal-cancel" id="modalCancel">Cancel</button>
       <button class="modal-save" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="labelModal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-heading">Manage Labels</div>
+      <button class="modal-x" id="labelModalX">✕</button>
+    </div>
+    <div id="labelList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;">
+      <input class="modal-input" id="labelNameIn" placeholder="Label name" style="flex:1;min-width:100px;" />
+      <input class="modal-input" id="labelUrlIn" placeholder="URL" style="flex:1;min-width:120px;" />
+      <input type="color" id="labelColorIn" value="#60a5fa" style="width:38px;height:38px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);cursor:pointer;padding:2px;" />
+      <button class="add-btn" id="labelAddBtn">Add</button>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-cancel" id="labelModalClose">Close</button>
     </div>
   </div>
 </div>
@@ -616,6 +661,14 @@
     try { return JSON.parse(localStorage.getItem("anime_prefs_v1")||"{}"); } catch { return {}; }
   })();
   const savePrefs = () => { try { localStorage.setItem("anime_prefs_v1",JSON.stringify(prefs)); } catch{} };
+  if (!prefs.labels) {
+    prefs.labels = [
+      { name: "Muse", url: "https://www.youtube.com/@MuseIndonesia", color: "#f87171" },
+      { name: "AniOne", url: "https://www.youtube.com/@AniOneID", color: "#60a5fa" },
+      { name: "Trophics", url: "https://www.youtube.com/@TropicsAnimeAsia", color: "#34d399" },
+      { name: "OtakuDesu", url: "https://otakudesu.best", color: "#fbbf24" },
+    ];
+  }
 
   const getInitialSeason = () => {
     const hash = window.location.hash.replace("#", "").replace("-", " ");
@@ -687,8 +740,9 @@
   const $slider  = document.getElementById("scaleSlider");
   const $scaleV  = document.getElementById("scaleVal");
   const applyScale = v => {
-    document.documentElement.style.zoom = parseFloat(v);
-    $scaleV.textContent = parseFloat(v).toFixed(2).replace(/\.?0+$/,"")+"×";
+    const s = parseFloat(v);
+    document.querySelector(".page").style.zoom = s;
+    $scaleV.textContent = s.toFixed(2).replace(/\.?0+$/,"")+"×";
   };
   const initScale = prefs.scale || 1;
   $slider.value = initScale; applyScale(initScale);
@@ -763,6 +817,7 @@
             completed:   !!it.completed,
             watchedWeek: !!it.watchedWeek,
             color:       typeof it.color==="string"?it.color:"",
+            label:       typeof it.label==="string"?it.label:"",
           })).filter(it=>it.title.trim());
         }
       }
@@ -913,6 +968,54 @@
   };
   const allItems=()=>DAYS.flatMap(d=>state.days[d].items);
 
+  /* ── Label Management ── */
+  const renderLabelList=()=>{
+    const c=document.getElementById("labelList"); c.innerHTML="";
+    (prefs.labels||[]).forEach((l,i)=>{
+      const r=document.createElement("div"); r.style.cssText="display:flex;gap:6px;align-items:center;flex-wrap:wrap;";
+      const ci=document.createElement("input"); ci.type="color"; ci.value=l.color||"#60a5fa";
+      ci.style.cssText="width:34px;height:34px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);cursor:pointer;padding:2px;flex-shrink:0;";
+      ci.addEventListener("input",()=>{l.color=ci.value;savePrefs();});
+      const ni=document.createElement("input"); ni.className="modal-input"; ni.value=l.name;
+      ni.style.cssText="flex:1;min-width:80px;padding:6px 10px;font-size:13px;";
+      ni.addEventListener("input",()=>{l.name=ni.value;savePrefs();});
+      const ui=document.createElement("input"); ui.className="modal-input"; ui.value=l.url;
+      ui.style.cssText="flex:2;min-width:100px;padding:6px 10px;font-size:13px;";
+      ui.addEventListener("input",()=>{l.url=ui.value;savePrefs();});
+      const db=document.createElement("button"); db.className="del-btn"; db.textContent="✕";
+      db.style.cssText="padding:4px 8px;font-size:11px;flex-shrink:0;";
+      db.addEventListener("click",()=>{prefs.labels.splice(i,1);savePrefs();renderLabelList();});
+      r.append(ci,ni,ui,db); c.appendChild(r);
+    });
+  };
+  const closeLabelModal=()=>{
+    document.getElementById("labelModal").classList.remove("open");
+    document.getElementById("labelModal").setAttribute("aria-hidden","true");
+    render();
+  };
+  document.getElementById("labelsBtn").addEventListener("click",()=>{
+    renderLabelList();
+    document.getElementById("labelModal").classList.add("open");
+    document.getElementById("labelModal").setAttribute("aria-hidden","false");
+  });
+  document.getElementById("labelModalX").addEventListener("click",closeLabelModal);
+  document.getElementById("labelModalClose").addEventListener("click",closeLabelModal);
+  document.getElementById("labelModal").addEventListener("click",e=>{
+    if(e.target===document.getElementById("labelModal")) closeLabelModal();
+  });
+  document.getElementById("labelAddBtn").addEventListener("click",()=>{
+    const n=document.getElementById("labelNameIn").value.trim();
+    const u=document.getElementById("labelUrlIn").value.trim();
+    const c=document.getElementById("labelColorIn").value;
+    if(!n||!u) return;
+    if(!prefs.labels) prefs.labels=[];
+    prefs.labels.push({name:n,url:u,color:c});
+    savePrefs();
+    document.getElementById("labelNameIn").value="";
+    document.getElementById("labelUrlIn").value="";
+    renderLabelList();
+  });
+
   /* ── Ambient Mode ── */
   const openAmbient=()=>{
     const content=document.getElementById("ambientContent");
@@ -955,17 +1058,29 @@
     btn.textContent = "...";
     btn.classList.add("fetching");
     try {
-      const query = `query ($search: String) { Media(search: $search, type: ANIME) { episodes } }`;
+      const query = `query ($search: String) { Media(search: $search, type: ANIME) { episodes status } }`;
       const res = await fetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ query, variables: { search: item.title } })
       });
+      if (!res.ok) {
+        btn.textContent = res.status === 429 ? "!" : "AL!";
+        setTimeout(() => { btn.textContent = "AL"; btn.classList.remove("fetching"); }, 1800);
+        return;
+      }
       const data = await res.json();
-      if (data.data?.Media?.episodes) {
-        item.epsTotal = data.data.Media.episodes;
+      const media = data.data?.Media;
+      if (media?.episodes) {
+        item.epsTotal = media.episodes;
         saveSoon();
         render();
+        return;
+      }
+      if (media?.status === "RELEASING") {
+        btn.textContent = "??";
+        btn.title = "Still airing, total unknown";
+        setTimeout(() => { btn.textContent = "AL"; btn.classList.remove("fetching"); btn.title = "Fetch total episodes from AniList"; }, 2000);
       } else {
         btn.textContent = "AL?";
         setTimeout(() => { btn.textContent = "AL"; btn.classList.remove("fetching"); }, 1500);
@@ -1041,7 +1156,7 @@
 
       const doAdd=()=>{
         const raw=ai.value.trim(); if(!raw) return;
-        state.days[dayName].items.push({id:uid(),title:raw,status:"",epsWatched:0,epsTotal:0,completed:false,watchedWeek:false,color:""});
+        state.days[dayName].items.push({id:uid(),title:raw,status:"",epsWatched:0,epsTotal:0,completed:false,watchedWeek:false,color:"",label:""});
         ai.value=""; saveSoon(); render();
       };
       
@@ -1050,7 +1165,7 @@
         if (!raw) return;
         const lines = raw.split("\n").map(s => s.trim()).filter(Boolean);
         lines.forEach(t => {
-          state.days[dayName].items.push({id:uid(),title:t,status:"",epsWatched:0,epsTotal:0,completed:false,watchedWeek:false,color:""});
+          state.days[dayName].items.push({id:uid(),title:t,status:"",epsWatched:0,epsTotal:0,completed:false,watchedWeek:false,color:"",label:""});
         });
         batchInput.value = "";
         batchWrap.classList.remove("open");
@@ -1161,7 +1276,20 @@
             mkO("↓",()=>{const arr=state.days[dayName].items,idx=arr.findIndex(x=>x.id===it.id);if(idx<arr.length-1){[arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]];saveSoon();render();}})
           );
 
-          rowA.append(bchk,chk,titleEl,cpWrap,ob);
+          // Label badge in Row A
+          const lbWrap=document.createElement("span"); lbWrap.style.cssText="display:inline-flex;align-items:center;flex-shrink:0;";
+          const ld2=prefs.labels?prefs.labels.find(l=>l.name===it.label):null;
+          if(ld2){
+            const lb=document.createElement("a"); lb.href=ld2.url; lb.target="_blank"; lb.rel="noopener noreferrer";
+            lb.className="label-badge"; lb.textContent=it.label;
+            const c=ld2.color||"#60a5fa", h=c.replace("#","");
+            const ir=parseInt(h.substr(0,2),16), ig=parseInt(h.substr(2,2),16), ib=parseInt(h.substr(4,2),16);
+            const lum=(0.299*ir+0.587*ig+0.114*ib)/255;
+            lb.style.background=c; lb.style.color=lum>0.55?"#111118":"#fff";
+            lb.style.boxShadow="0 1px 5px "+c+"55";
+            lb.addEventListener("click",e=>e.stopPropagation()); lbWrap.appendChild(lb);
+          }
+          rowA.append(bchk,chk,titleEl,lbWrap,cpWrap,ob);
 
           // Row B
           const rowB=document.createElement("div"); rowB.className="item-row-b";
@@ -1180,6 +1308,15 @@
           et.value=String(int(it.epsTotal??0,0,99999)); et.placeholder="?"; et.setAttribute("aria-label","Total eps");
           et.addEventListener("input",()=>{it.epsTotal=int(et.value,0,99999);saveSoon();});
           ew.append(elb,ei,sep,et);
+
+          // Label selector
+          const ls=document.createElement("select"); ls.className="label-select"; ls.setAttribute("aria-label","Label");
+          const lo=document.createElement("option"); lo.value=""; lo.textContent="Label"; ls.appendChild(lo);
+          (prefs.labels||[]).forEach(l=>{
+            const o=document.createElement("option"); o.value=l.name; o.textContent=l.name;
+            if(l.name===it.label) o.selected=true; ls.appendChild(o);
+          });
+          ls.addEventListener("change",()=>{it.label=ls.value;saveSoon();render();});
 
           const acts=document.createElement("div"); acts.className="item-actions";
 
@@ -1201,7 +1338,7 @@
           db.title="Remove"; db.addEventListener("click",e=>{e.stopPropagation();if(!confirm("Remove \""+it.title+"\"?"))return;state.days[dayName].items=state.days[dayName].items.filter(x=>x.id!==it.id);saveSoon();render();});
 
           acts.append(wb,alBtn,malA,db);
-          rowB.append(sel,ew,acts);
+          rowB.append(sel,ew,ls,acts);
 
           // Progress Bar
           const pBar = document.createElement("div");
@@ -1258,7 +1395,11 @@
   $if.addEventListener("change",()=>{
     const f=$if.files?.[0];$if.value="";if(!f)return;
     const r=new FileReader();r.onload=()=>{
-      try{const p=JSON.parse(String(r.result));if(!p?.days)throw 0; state=p; saveSoon(); render(); setStatus("Imported.");}
+      try{const p=JSON.parse(String(r.result));if(!p?.days)throw 0;
+        DAYS.forEach(d=>{if(p.days[d]?.items) p.days[d].items=p.days[d].items.map(it=>({
+          ...it, label:typeof it.label==="string"?it.label:""
+        }));});
+        state=p; saveSoon(); render(); setStatus("Imported.");}
       catch{setStatus("Import failed.");alert("Invalid JSON file.");}
     };r.readAsText(f);
   });
