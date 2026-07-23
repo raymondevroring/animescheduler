@@ -1093,7 +1093,15 @@
 
   /* ── Render ── */
   function render(){
+    // Preserve scroll positions before re-render
+    const scrollTopMap={};
+    document.querySelectorAll(".day").forEach(card=>{
+      const list=card.querySelector(".items");
+      if(list) scrollTopMap[card.dataset.day]=list.scrollTop;
+    });
+
     $grid.innerHTML="";
+
     const todayName=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
 
     for(const dayName of DAYS){
@@ -1362,6 +1370,15 @@
       $grid.appendChild(card);
     }
     updateStats(); updateBulkBar(); applySearch($search.value);
+
+    // Restore scroll positions after re-render
+    Object.keys(scrollTopMap).forEach(day=>{
+      const card=document.querySelector(`.day[data-day="${day}"]`);
+      if(card){
+        const list=card.querySelector(".items");
+        if(list) list.scrollTop=scrollTopMap[day];
+      }
+    });
   }
 
   /* ── Topbar Actions ── */
